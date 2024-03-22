@@ -2,5 +2,12 @@
 haproxy_package: haproxy
 haproxy_version: latest
 
+haproxy_user: haproxy
+haproxy_group: haproxy
+
+haproxy_connect_timeout: 5000
+haproxy_client_timeout: 50000
+haproxy_server_timeout: 50000
+
 haproxy_frontends: []
 haproxy_backends: []

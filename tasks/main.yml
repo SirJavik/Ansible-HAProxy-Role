@@ -66,6 +66,16 @@
   loop: "{{ haproxy_confs_content.files | map(attribute='path') | map('basename') | list }}"
   when: item not in allowed_files
 
+- name: "Create haproxy.cfg"
+  ansible.builtin.template:
+    src:   "./templates/haproxy/haproxy.cfg.j2"
+    dest:  "/etc/haproxy/haproxy.cfg"
+    owner: 'root'
+    group: 'root'
+    mode:  '0644'
+  notify:
+    - Restart haproxy
+
 - name: "Start and enable haproxy"
   ansible.builtin.systemd_service:
     name: "haproxy"
