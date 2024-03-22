@@ -1,0 +1,10 @@
+####################################
+##### MANAGED BY ANSIBLE ({{ ansible_role_name }})
+####################################
+
+backend {{ item.name }}
+  mode {{ item.mode }}
+  balance {{ item.balance }}
+{% for server in item.servers %}
+  server s{{ loop.index }} {{ server }}:80 check
+{% endfor %}

@@ -1,0 +1,20 @@
+---
+dependencies:
+  - role: javikweb.scripts
+    
+galaxy_info:
+  role_name: debian
+  author: haproxy
+  description: HAProxy for Debian
+  license: "MIT"
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Debian
+      versions:
+        - all
+  galaxy_tags:
+    - loadbalancing
+    - proxy
+    - web
+
+allow_duplicates: true

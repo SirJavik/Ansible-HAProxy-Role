@@ -1,0 +1,6 @@
+---
+haproxy_package: haproxy
+haproxy_version: latest
+
+haproxy_frontends: []
+haproxy_backends: []

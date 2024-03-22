@@ -1,0 +1,8 @@
+####################################
+##### MANAGED BY ANSIBLE ({{ ansible_role_name }})
+####################################
+
+frontend {{ item.name }}
+  mode {{ item.mode }}
+  bind {{ item.bind_address }}:{{ item.port }}
+  default_backend {{ item.backend }}

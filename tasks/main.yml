@@ -1,0 +1,74 @@
+---
+- name: "Install {{ haproxy_package }} version {{ haproxy_version }}"
+  ansible.builtin.apt: 
+    name: "{{ haproxy_package }}"
+    state: "{{ haproxy_version }}"
+
+- name: "Create /etc/haproxy/conf"
+  ansible.builtin.file:
+    path: "/etc/haproxy/conf"
+    state: "directory"
+
+- name: "Create frontend confs"
+  ansible.builtin.template:
+    src:   "./templates/haproxy/frontends.cfg.j2"
+    dest:  "/etc/haproxy/conf/frontend_{{ item.name }}.cfg"
+    owner: 'root'
+    group: 'root'
+    mode:  '0644'
+  loop: "{{ haproxy_frontends }}"
+  notify: Restart haproxy
+
+- name: "Create backend confs"
+  ansible.builtin.template:
+    src:   "./templates/haproxy/backends.cfg.j2"
+    dest:  "/etc/haproxy/conf/backend_{{ item.name }}.cfg"
+    owner: 'root'
+    group: 'root'
+    mode:  '0644'
+  loop: "{{ haproxy_backends }}"
+  notify: Restart haproxy
+
+- name: "Find haproxy configs"
+  ansible.builtin.find:
+    paths: /etc/haproxy/conf
+    patterns: '*.cfg'
+  register: haproxy_confs_content
+
+- name: "Build haproxy_confs"
+  ansible.builtin.set_fact:
+    haproxy_confs: "-f {{ haproxy_confs_content.files | map(attribute='path') | join(' -f ') }}"
+
+- name: "Create haproxy default"
+  ansible.builtin.template:
+    src:   "./templates/haproxy/haproxy.default.j2"
+    dest:  "/etc/default/haproxy"
+    owner: 'root'
+    group: 'root'
+    mode:  '0644'
+  notify:
+    - Do daemon-reload
+    - Restart haproxy
+
+- name: "Build files lists"
+  ansible.builtin.set_fact:
+    list_frontends: "{{ ['frontend_'] | product(haproxy_frontends | map(attribute='name')) | map('join') | list | product(['.cfg']) | map('join') | list }}"
+    list_backend:   "{{ ['backend_'] | product(haproxy_backends | map(attribute='name')) | map('join') | list | product(['.cfg']) | map('join') | list }}"
+
+- name: "Build allowed files list"
+  ansible.builtin.set_fact:
+    allowed_files: "{{ list_frontends + list_backend }}"
+
+- name: Remove unmanaged config files
+  file:
+    path: /etc/default/haproxy/{{ item }}
+    state: absent
+  loop: "{{ haproxy_confs_content.files | map(attribute='path') | map('basename') | list }}"
+  when: item not in allowed_files
+
+- name: "Start and enable haproxy"
+  ansible.builtin.systemd_service:
+    name: "haproxy"
+    state: "started"
+    enabled: true
+    masked: false
