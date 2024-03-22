@@ -61,7 +61,7 @@
 
 - name: Remove unmanaged config files
   file:
-    path: /etc/default/haproxy/{{ item }}
+    path: /etc/haproxy/conf/{{ item }}
     state: absent
   loop: "{{ haproxy_confs_content.files | map(attribute='path') | map('basename') | list }}"
   when: item not in allowed_files
