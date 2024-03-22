@@ -39,17 +39,6 @@
   ansible.builtin.set_fact:
     haproxy_confs: "-f {{ haproxy_confs_content.files | map(attribute='path') | join(' -f ') }}"
 
-- name: "Create haproxy default"
-  ansible.builtin.template:
-    src:   "./templates/haproxy/haproxy.default.j2"
-    dest:  "/etc/default/haproxy"
-    owner: 'root'
-    group: 'root'
-    mode:  '0644'
-  notify:
-    - Do daemon-reload
-    - Restart haproxy
-
 - name: "Build files lists"
   ansible.builtin.set_fact:
     list_frontends: "{{ ['frontend_'] | product(haproxy_frontends | map(attribute='name')) | map('join') | list | product(['.cfg']) | map('join') | list }}"
@@ -74,6 +63,27 @@
     group: 'root'
     mode:  '0644'
   notify:
+    - Restart haproxy
+
+- name: "Find haproxy configs"
+  ansible.builtin.find:
+    paths: /etc/haproxy/conf
+    patterns: '*.cfg'
+  register: haproxy_confs_content
+
+- name: "Build haproxy_confs"
+  ansible.builtin.set_fact:
+    haproxy_confs: "-f {{ haproxy_confs_content.files | map(attribute='path') | join(' -f ') }}"
+
+- name: "Create haproxy default"
+  ansible.builtin.template:
+    src:   "./templates/haproxy/haproxy.default.j2"
+    dest:  "/etc/default/haproxy"
+    owner: 'root'
+    group: 'root'
+    mode:  '0644'
+  notify:
+    - Do daemon-reload
     - Restart haproxy
 
 - name: "Start and enable haproxy"
