@@ -7,5 +7,5 @@ backend {{ item.name }}
   option {{ item.option }}
   balance {{ item.balance }}
 {% for server in item.servers %}
-  server s{{ loop.index }} {{ server }}:80 check
+  server s{{ loop.index }} {{ server }}:{{ item.port }} check
 {% endfor %}
